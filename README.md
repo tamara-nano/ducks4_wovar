@@ -36,7 +36,7 @@ download repository and unzip it \
 
 For running the tool:
 
-`docker run --rm -v $(pwd):/data fshd_ducks4 --input /data/mysample.bam --methyl --variant`
+`docker run --rm -v $(pwd):/data fshd_ducks4 --input /data/mysample.bam --methyl`
 
 For showing more infos:
 
@@ -121,6 +121,7 @@ HG003
 If using the workflow for a publication please cite:
 
 <Insert Paper-citation>
+
 
 
 
