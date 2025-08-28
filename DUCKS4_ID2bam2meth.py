@@ -1,4 +1,4 @@
-import os, subprocess, time, shutil, sys
+-import os, subprocess, time, shutil, sys
 from argparse import ArgumentParser
 from pprint import pprint
 
@@ -8,15 +8,15 @@ parser = ArgumentParser(
     DUCKS4 - ID2bam2meth
 
     This script allows bundling of selected read IDs from DUCKS4 output
-    for methylation analysis and BAM extraction using reference genome T2T-chm13v2.0. Also an alternative reference can be used.
+    Please give a read_id.txt file, a BAM file from which the reads need to be extracted from and a reference in FASTA.
     """
 )
 parser.add_argument("--txt", dest="tinput", help="required, read_id.txt, Copy the read IDs you want to bundle from the analysis files into a .txt file and give it to me :)", required=True)
-parser.add_argument("--bam", dest="binput", help="required, provide mapped & sorted .bam file (e.g. from DUCKS4-output) for reference T2T-chm13v2.0. If you want to use another ref. Please add flag --ref", required=True)
-parser.add_argument("--ref", dest="ref", help="optional, custom reference .fasta. Default is T2T_chm13v2.0.", required=False)
+parser.add_argument("--bam", dest="binput", help="required, provide .bam file (e.g. from DUCKS4-output) from which the reads need to be extracted.", required=True)
+parser.add_argument("--ref", dest="ref", help="required, Give reference-fasta.", required=True)
 parser.add_argument("--methyl", dest="methyl", help="optional, perform methylation calling on selected reads.", required=False, action='store_true')
-parser.add_argument("--region", dest="region", help=" optional, enomic region (e.g. chr1:1-100). REQUIRED if --ref & --methyl are set. Default for T2T_chm13v2.0 ref (when no --ref is given) = chr4:193540172-193543634 (2 most distal RU + gene-body).", required=False)
-parser.add_argument("--threads", dest="threads", help="optional. Set your amount of threads. Default is 45", default="45", required=False)
+parser.add_argument("--region", dest="region", help=" optional, genomic region for % methylation calculation (e.g. chr1:1-100). REQUIRED if --ref & --methyl are set.", required=False)
+parser.add_argument("--threads", dest="threads", help="optional. Set your amount of threads for minimap2 and samtools. Default is 45", default="45", required=False)
 
 parser.set_defaults(methyl=False)
 
@@ -90,68 +90,7 @@ def main():
         return None
       return file_out
     
-    def checkfile_fasta(file_in):
-      # Test, if file exists:
-      file_out = file_in.rsplit('.', 1)[0] + '.fasta'
-      if not os.path.isfile(file_in):
-        raise FileNotFoundError(f"The file {file_in} was not found.")
-      if file_in.endswith('bam'):
-        print("       ")
-        print(".bam-file is being converted to .fasta-file with samtools.")
-        print("       ")
-        file_out = file_in.rsplit('.', 1)[0] + '.fasta'
-        try:
-          with open(file_out, 'w') as out_f:
-            result = subprocess.run(['samtools', 'fasta', file_in], check=True, text=True, stdout=out_f, stderr=subprocess.PIPE)
-          print(f"The file was successfully converted to {file_out}.")
-          if result.stderr:
-            print(f"{result.stderr}")
-        except subprocess.CalledProcessError as e:
-          print(f"Error while converting the file: {e}")
-          print(f"{e.stderr}")
-          return None
-      elif file_in.endswith('gz'):
-        print("       ")
-        print(".fastq.gz-file is being converted to .fasta-file with seqtk.")
-        print("       ")
-        try:
-          with open(file_out, 'w') as out_f:
-            result = subprocess.run(['seqtk', 'seq', '-a', file_in], check=True, text=True, stdout=out_f, stderr=subprocess.PIPE)
-          print(f"The file was successfully converted to {file_out}.")
-          if result.stderr:
-            print(f"{result.stderr}")
-        except subprocess.CalledProcessError as e:
-          print(f"Errer while converting the file: {e}")
-          print(f"{e.stderr}")
-          return None
-      elif file_in.endswith('fastq'):
-        print("       ")
-        print(".fastq-file is being converted to .fasta-file with seqtk.")
-        print("       ")
-        try:
-          with open(file_out, 'w') as out_f:
-            result = subprocess.run(['seqtk', 'seq', '-a', file_in], check=True, text=True, stdout=out_f, stderr=subprocess.PIPE)
-          print(f"The file was successfully converted to {file_out}.")
-          if result.stderr:
-            print(f"{result.stderr}")
-        except subprocess.CalledProcessError as e:
-          print(f"Error while converting the file: {e}")
-          print(f"{e.stderr}")
-          return None
-      elif file_in.endswith('fasta'):
-        print("       ")
-        print(".fasta-file recognized, continue with Blast.")
-        print("       ")
-        file_out = file_in
-      elif file_in.endswith('fa'):
-        print("       ")
-        print(".fasta-file recognized, continue with Blast.")
-        print("       ")
-        file_out = file_in
-      else:
-        print(f"This file-format is not supported!")
-        return None
-      return file_out
+   
     
     def minimap2(file):
       print("       ")
@@ -162,21 +101,11 @@ def main():
       ref_path = os.path.join(script_path, "ressources","reference", '')
       sam_file = ''.join([file_in.split('.')[0], "_T2Tchm13v2.sam"])
       if args.threads:
-        if args.ref:
-          ref_name = os.path.basename(args.ref).split('.')[0]
-          sam_file = ''.join([file_in.split('.')[0], "_", ref_name, ".sam"])
-          subprocess.call(["minimap2", "-ax", "lr:hq", "--MD", "-L", "-t", args.threads, "-Y", "-y", "-o", os.path.join(path, sam_file), args.ref, os.path.join(path, file_in)])
-        else:
-          sam_file = ''.join([file_in.split('.')[0], "_T2Tchm13v2.sam"])
-          subprocess.call(["minimap2", "-ax", "lr:hq", "--MD", "-L", "-t", args.threads, "-Y", "-y", "-o", os.path.join(path, sam_file), os.path.join(ref_path, "chm13v2.0.fa"), os.path.join(path, file_in)])
+        sam_file = ''.join([file_in.split('.')[0], "_T2Tchm13v2.sam"])
+        subprocess.call(["minimap2", "-ax", "lr:hq", "--MD", "-L", "-t", args.threads, "-Y", "-y", "-o", os.path.join(path, sam_file), args.ref, os.path.join(path, file_in)])
       else:
-        if args.ref:
-          ref_name = os.path.basename(args.ref).split('.')[0]
-          sam_file = ''.join([file_in.split('.')[0], "_", ref_name, ".sam"])
-          subprocess.call(["minimap2", "-ax", "lr:hq", "--MD", "-L", "-t", "45", "-Y", "-y", "-o", os.path.join(path, sam_file), args.ref, os.path.join(path, file_in)])
-        else:
-          sam_file = ''.join([file_in.split('.')[0], "_T2Tchm13v2.sam"])
-          subprocess.call(["minimap2", "-ax", "lr:hq", "--MD", "-L", "-t", "45", "-Y", "-y", "-o", os.path.join(path, sam_file), os.path.join(ref_path, "chm13v2.0.fa"), os.path.join(path, file_in)])
+        sam_file = ''.join([file_in.split('.')[0], "_T2Tchm13v2.sam"])
+        subprocess.call(["minimap2", "-ax", "lr:hq", "--MD", "-L", "-t", "45", "-Y", "-y", "-o", os.path.join(path, sam_file), args.ref, os.path.join(path, file_in)])
       return sam_file 
     
     def samtools_bam(sam_input):
@@ -198,32 +127,7 @@ def main():
       return bam_file
 
       
-    def check_ID(ID):
-      ID_file = os.path.basename(ID)
-      path = os.path.dirname(ID)
-      print("       ")
-      print("Filtering haplotypes and complete reads and mapping to T2T-chm13v2.0. for ID ", ID_file)
-      print("       ")
-      file_size = os.path.getsize((os.path.join(path, ID_file)))
-      if file_size == 0:
-        print("No IDs in file ", ID_file, ". Skipped & ID-file deleted.")
-        subprocess.call(["rm", os.path.join(path, ID_file)])
-        return None
-      else:
-        ID_sam = ''.join([file_name, "_", ID_file.split('.')[0], ".sam"]) 
-        ID_bam = ''.join([file_name, "_", ID_file.split('.')[0], ".bam"])
-        fsf = open(os.path.join(path, ID_bam), "w")
-        subprocess.call(['samtools', 'view',  '-h', '-N', os.path.join(path, ID_file), os.path.join(path_sample, bam_map)], stdout = fsf)
-        fsf.close()
-        fastq = checkfile_fastq(os.path.join(path, ID_bam))
-        subprocess.call(["rm", os.path.join(path, ID_bam)])
-        sam = minimap2(fastq)
-        bam = samtools_bam(os.path.join(path, sam))
-        subprocess.call(["rm", fastq])
-        subprocess.call(["mv", os.path.join(path, ID_file), os.path.join(path, "read-IDs")])
-      return bam
-
-
+   
 
 
     ### START WORKFLOW  ###
@@ -265,46 +169,25 @@ def main():
       print("Start Methylation-analysis with Modkit.")
       print("       ")
       
-      if args.ref:
-        ref_name = os.path.basename(args.ref).split('.')[0]
-        ref_path = os.path.dirname(args.ref)
-        ref_file = os.path.basename(args.ref)
-      else:
-        ref_path = os.path.join(script_path, "ressources","reference")
-        ref_path = str(ref_path)
-      
+      ref_name = os.path.basename(args.ref).split('.')[0]
+      ref_path = os.path.dirname(args.ref)
+      ref_file = os.path.basename(args.ref)
+
       bam_map_name = os.path.basename(bam_map).split('.')[0]
       meth_path = os.path.join(bam_path, "methylation-analysis")
       os.mkdir(meth_path)
       modkit_bed = ''.join([bam_map_name, "_", "modkit-methyl.bed"])   
-      if args.ref:
-        subprocess.call(["modkit", "pileup", os.path.join(bam_path, bam_map), os.path.join(meth_path, modkit_bed), "--cpg", "--ref", args.ref])
-      else:
-        subprocess.call(["modkit", "pileup", os.path.join(bam_path, bam_map), os.path.join(meth_path, modkit_bed), "--cpg", "--ref", os.path.join(ref_path, "chm13v2.0.fa")])
+      subprocess.call(["modkit", "pileup", os.path.join(bam_path, bam_map), os.path.join(meth_path, modkit_bed), "--cpg", "--ref", args.ref])
       modkit_bedgz = ''.join([modkit_bed, ".gz"])
       subprocess.call(["bgzip", os.path.join(meth_path, modkit_bed)])
       subprocess.call(["tabix", os.path.join(meth_path, modkit_bedgz)])
-      
-      if args.ref:
-        chrom, coords = args.region.split(":")
-        start, end = map(int, coords.split("-"))
-        bed = ''.join(["coordinates_methcalc.bed"])
-        bed_file = os.path.join(meth_path, bed)
-        with open(bed_file, "w") as f:
-          f.write(f"{chrom}\t{start - 1}\t{end}\n")
-      else:
-        if args.region:
-          chrom, coords = args.region.split(":")
-          start, end = map(int, coords.split("-"))
-          bed = ''.join(["coordinates_methcalc.bed"])
-          bed_file = os.path.join(meth_path, bed)
-          with open(bed_file, "w") as f:
-            f.write(f"{chrom}\t{start - 1}\t{end}\n")
-        else:
-          bed = ''.join(["distal-RU_gene-body_methcalc.bed"])
-          bed_file = os.path.join(meth_path, bed)
-          with open(bed_file, "w") as f:
-            f.write("chr4\t193540172\t193543634\n")
+
+      chrom, coords = args.region.split(":")
+      start, end = map(int, coords.split("-"))
+      bed = ''.join(["coordinates_methcalc.bed"])
+      bed_file = os.path.join(meth_path, bed)
+      with open(bed_file, "w") as f:
+        f.write(f"{chrom}\t{start - 1}\t{end}\n")
         
       modout_all = "modkit-STATS.tsv" 
       subprocess.call(["modkit", "stats", "--regions", bed_file, "-o", os.path.join(meth_path, modout_all), os.path.join(meth_path, modkit_bedgz)])
