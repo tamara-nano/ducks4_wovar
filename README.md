@@ -19,28 +19,23 @@ Please follow the official installation instructions for your operating system.
 
 ## Installation
 
-Pull docker image: 
-
-`docker pull fshd_ducks4`
-
-or 
 
 Build image with dockerfile:
 
 download repository and unzip it \
 `cd /path/ducks4_wovar/`
 
-`docker build -t fshd_ducks4 .  `
+`docker build -t fshd_ducks4_wovar .  `
 
 ## Usage
 
 For running the tool:
 
-`docker run --rm -v $(pwd):/data fshd_ducks4 --input /data/mysample.bam --methyl`
+`docker run --rm -v $(pwd):/data fshd_ducks4_wovar --input /data/mysample.bam --methyl`
 
 For showing more infos:
 
-`docker run -it --rm -v $(pwd):/data fshd_ducks4 --help`
+`docker run -it --rm -v $(pwd):/data fshd_ducks4_wovar --help`
 
 | **tags** | **Infos** |
 |:-----------------------------|:-----------------------------------------|
@@ -52,19 +47,20 @@ The output is saved in the folder where the original input file is located.
 
 ## Anaylsis of individual read-subsets
 
-The DUCKS4-results makes it easy to directly select reads for individal subset for further mapping, optional methylation-calling and analysis. If further subsets of reads should be filtered and analyzed. a read-id.txt needs to be provided along the alignment .bam-file.
+The DUCKS4-results makes it easy to directly select reads for individal subset for further mapping, optional methylation-calling and analysis. If further subsets of reads should be filtered and analyzed. a read-id.txt needs to be provided along the .bam-file from which the reads should be filtered.
 
 **Note**: Subsetting reads are f.ex. necessary when 2 4qA alleles are present and the methylation status should be called. The tool can't distinguish two 4qA alleles.
 
-`docker run --rm -v "$(pwd)":/data --entrypoint python3 fshd_ducks4 /ducks4/DUCKS4_ID2bam2meth.py
-  --txt /data/read-id.txt
-  --bam /data/sample.bam
-  --methyl
-  --region chr4:193540172-193543634`
+`docker run --rm -v "$(pwd)":/data --entrypoint python3 fshd_ducks4_wovar /ducks4/DUCKS4_ID2bam2meth.py
+  --txt /data/read-id.txt \
+  --bam /data/sample.bam \
+  --ref /data/ref.bam \
+  --methyl \
+  --region chr4:193540172-193543634
 
 For showing more infos:
 
-`docker run -it --rm -v $(pwd):/data fshd_ducks4 python3 /ducks4/DUCKS4_ID2bam2meth.py --help`
+`docker run -it --rm -v $(pwd):/data fshd_ducks4_wovar python3 /ducks4/DUCKS4_ID2bam2meth.py --help`
 
 | **tags** | **Infos** |
 |:-----------------------------|:-----------------------------------------|
@@ -119,6 +115,7 @@ Publication
 If using the workflow for a publication please cite:
 
 <Löwenstern T., Madritsch M., Horner D., Brait N., Güleray Lafci N., Schachner A., Gerykova Bujalkova M., Kałużewski T., Szyld P., Hengstschläger M., Dremsek P., Laccone F. DUCKS4: A comprehensive workflow for Nanopore sequencing analysis of Facioscapulohumeral Muscular Dystrophy (FSHD). Manuscript in preparation.>
+
 
 
 
