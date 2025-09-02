@@ -39,7 +39,8 @@ For showing more infos:
 
 | **tags** | **Infos** |
 |:-----------------------------|:-----------------------------------------|
-| --bam | provide input-file. Best start with your basecalled SUP bam or fastq/fastq.gz-file. |
+| --bam | required, provide input-file. Best start with your basecalled SUP bam or fastq/fastq.gz-file. |
+| --ref | required, provide the T2T-chm13 reference (.fasta). |
 | --methyl | optional, methylation calling with modkit, target region: chr4:193540172-193543634. |
 | --threads | optional, set threads. |
 
@@ -66,7 +67,7 @@ For showing more infos:
 |:-----------------------------|:-----------------------------------------|
 | --txt | required, provide read-id.txt: Copy the read IDs you want to bundle from the analysis files into a .txt file. |
 | --bam | required, provide mapped & sorted .bam file for reference T2T-chm13v2.0 (e.g. from DUCKS4-output). If you want to use another ref. Please add flag --ref --ref optional, provide own reference, else the T2T-chm13v2.0 ref from the DUCKs4-wf is used. |
-| --ref | optional, provide own reference, else the T2T-chm13v2.0 ref from the DUCKs4-wf is used. |
+| --ref | required, provide T2T-chm13 reference as .fasta. |
 | --methyl | optional, methylation calling with modkit, target region: chr4:193540172-193543634 (2 most distal RU + gene-body with pLAM). |
 | --region | optional, provide genomic region (e.g. chr1:1-100). Only REQUIRED if --ref & --methyl are set. Default for T2T_chm13v2.0 ref (when no --ref is given) = chr4:193540172-193543634. |
 | --threads | optional, set threads. |
@@ -115,6 +116,7 @@ Publication
 If using the workflow for a publication please cite:
 
 <Löwenstern T., Madritsch M., Horner D., Brait N., Güleray Lafci N., Schachner A., Gerykova Bujalkova M., Kałużewski T., Szyld P., Hengstschläger M., Dremsek P., Laccone F. DUCKS4: A comprehensive workflow for Nanopore sequencing analysis of Facioscapulohumeral Muscular Dystrophy (FSHD). Manuscript in preparation.>
+
 
 
 
