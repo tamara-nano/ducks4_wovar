@@ -1,8 +1,11 @@
-# DUCKS4
+# DUCKS4_wovar
 
 FSHD-analysis tool for Nanopore-Sequencing.
 
-Attention: Small version WITHOUT variant-calling!
+**Attention:** Small version WITHOUT variant-calling! 
+This version doesn't include a variant calling pipeline to keep the pipeline small. Therefore it annotates the reads, sorts and maps them, calls optionally methylation and gives the reports/statistics files. 
+
+For the extended version with included variant calling see: github.com/tamara-nano/ducks4
 
 
 Facioscapulohumeral Muscular Dystrophy (FSHD) is an autosomal dominant form of muscular dystrophy caused by genetic or epigenetic changes within the D4Z4-repeat at the DUX4-gene, on chromosome 4q. Genetic analysis is challenging due to a nearly identical region on chromosome 10, multiple haplotypes, long and short repeat subtypes, and complex rearrangements such as translocations and duplications. So far, no single method detects all known causes of FSHD.
@@ -119,6 +122,7 @@ Publication
 If using the workflow for a publication please cite:
 
 <Löwenstern T., Madritsch M., Horner D., Brait N., Güleray Lafci N., Schachner A., Gerykova Bujalkova M., Kałużewski T., Szyld P., Hengstschläger M., Dremsek P., Laccone F. DUCKS4: A comprehensive workflow for Nanopore sequencing analysis of Facioscapulohumeral Muscular Dystrophy (FSHD). Manuscript in preparation.>
+
 
 
 
