@@ -13,9 +13,9 @@ parser = ArgumentParser(
 )
 parser.add_argument("--txt", dest="tinput", help="required, read_id.txt, Copy the read IDs you want to bundle from the analysis files into a .txt file and give it to me :)", required=True)
 parser.add_argument("--bam", dest="binput", help="required, provide .bam file (e.g. from DUCKS4-output) from which the reads need to be extracted.", required=True)
-parser.add_argument("--ref", dest="ref", help="required, Give reference-fasta.", required=True)
+parser.add_argument("--ref", dest="ref", help="required, Give reference-fasta (T2T-chm13).", required=True)
 parser.add_argument("--methyl", dest="methyl", help="optional, perform methylation calling on selected reads.", required=False, action='store_true')
-parser.add_argument("--region", dest="region", help=" optional, genomic region for % methylation calculation (e.g. chr1:1-100). REQUIRED if --ref & --methyl are set.", required=False)
+parser.add_argument("--region", dest="region", help="required for --methyl, genomic region for % methylation calculation (e.g. chr1:1-100).", required=False)
 parser.add_argument("--threads", dest="threads", help="optional. Set your amount of threads for minimap2 and samtools. Default is 45", default="45", required=False)
 
 parser.set_defaults(methyl=False)
@@ -206,3 +206,4 @@ def main():
 
 if __name__ == "__main__":
     main()            
+
