@@ -58,7 +58,7 @@ The DUCKS4-results makes it easy to directly select reads for individal subset f
 `docker run --rm -v "$(pwd)":/data --entrypoint python3 fshd_ducks4_wovar /ducks4/DUCKS4_ID2bam2meth.py
   --txt /data/read-id.txt \
   --bam /data/sample.bam \
-  --ref /data/ref.bam \
+  --ref /data/t2t_chm13v2.0.fasta \
   --methyl \
   --region chr4:193540172-193543634
 
@@ -69,17 +69,15 @@ For showing more infos:
 | **tags** | **Infos** |
 |:-----------------------------|:-----------------------------------------|
 | --txt | required, provide read-id.txt: Copy the read IDs you want to bundle from the analysis files into a .txt file. |
-| --bam | required, provide mapped & sorted .bam file for reference T2T-chm13v2.0 (e.g. from DUCKS4-output). If you want to use another ref. Please add flag --ref --ref optional, provide own reference, else the T2T-chm13v2.0 ref from the DUCKs4-wf is used. |
+| --bam | required, provide .bam file from which the reads should be filtered from (e.g. from DUCKS4-output). 
 | --ref | required, provide T2T-chm13 reference as .fasta. |
-| --methyl | optional, methylation calling with modkit, target region: chr4:193540172-193543634 (2 most distal RU + gene-body with pLAM). |
-| --region | optional, provide genomic region (e.g. chr1:1-100). Only REQUIRED if --ref & --methyl are set. Default for T2T_chm13v2.0 ref (when no --ref is given) = chr4:193540172-193543634. |
+| --methyl | optional, methylation calling with modkit |
+| --region | optional, but required for --methyl: provide genomic region for methylation calling (e.g. chr1:1-100).   |
 | --threads | optional, set threads. |
 
 The output is saved in the folder where the alignment.bam is located.
 
-**Attention:** If the flag --ref and --methyl are set, the flag --region must also be provided!
-
-Creating the read-ID.txt Simply copy the reads-IDs you want to subset and filter from the DUCKS4-output tables into a txt-file:
+Creating the read-ID.txt: Simply copy the reads-IDs you want to subset and filter from the DUCKS4-output tables into a txt-file:
 
 Format read-id.txt:\
 
@@ -122,6 +120,7 @@ Publication
 If using the workflow for a publication please cite:
 
 <Löwenstern T., Madritsch M., Horner D., Brait N., Güleray Lafci N., Schachner A., Gerykova Bujalkova M., Kałużewski T., Szyld P., Hengstschläger M., Dremsek P., Laccone F. DUCKS4: A comprehensive workflow for Nanopore sequencing analysis of Facioscapulohumeral Muscular Dystrophy (FSHD). Manuscript in preparation.>
+
 
 
 
