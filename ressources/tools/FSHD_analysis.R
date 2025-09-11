@@ -2,7 +2,7 @@ library(dplyr)
 library(tidyr)
 
 
-# R-script for analyzing blastn-out of FSHD-regions (blastn with -outfmt 6) and database /data/blast/databases/FSHD-haplotypes
+# R-script for analyzing blastn-out of FSHD-regions (blastn with -outfmt 6) 
 
 
 titles <- c("read-id", "region", "percent-identity", "region-length", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "e-value", "bitscore")
@@ -902,10 +902,8 @@ cat('____________________________')
 
 cat('\n')
 cat('\n')
-cat('Chimeric reads: Translocation')
+cat('Chimeric reads:')
 cat('\n')
-cat('\n')
-cat('Detection of possible translocations between chr4 and chr10.')
 cat('\n')
 cat('Shows haplotype for proximal (D4F104S1) and distal (pLAM) end of the D4Z4-array of the chimeric reads.')
 cat('\n')
@@ -921,22 +919,8 @@ cat('4qA-subhaplotypes not distinguishable in their proximal-front (D4F104S1) re
 cat('\n')
 cat('4qB-subhaplotypes not distinguishable in their proximal-front (D4F104S1) region from chr10: 4B162, 4B168, 4B170H. But well distinguishable from the distal 4qB-pLAM.')
 cat('\n')
-cat('F.ex. if a 4qA-pLAM is available with a 10qA-D4F104S1 and may contain chr4_D4Z4 RU mixed with chr10_D4Z4 RU, it can be either a rare 10qA or 4qA allele. SSLP-Sequence should be examined for: 4A166 (non-permissive), 4A166H, 4A168.')
-cat('\n')
-cat('F.ex. if a 4qA-pLAM is available with a 10qA-D4F104S1 and also contains chr4 indicators pLAM_4qB_low_pid and/or c4_ctrl before D4F104S1 and contains chr4_D4Z4 (may be mixed with chr10_D4Z4), it is very likely a 4qA-read belonging to a rare 4qA-allele: 4A166 (non-permissive), 4A166H, 4A168.')
-cat('\n')
-cat('F.ex. if a 4qB/4qA-pLAM is available with a 10qA-D4F104S1 and contains chr10 indicators no_chr4_hit and/or c10_ctrl before D4F104S1 and contains chr4_D4Z4 RU, it is likely a 10q-read belonging to a rare 10q-allele: 10A176T, 10A180T')
-cat('\n')
-cat('4B161: chr4-markers (pLAM_4qB_low_pid/c4_ctrl) + 4qA_D4F104S1 + c4_D4Z4 + 4qB-pLAM --> rare 4qB haplotype 4B161.')
-cat('\n')
 cat('ATTENTION: Please further investigate ambiguous reads to confirm the correct chromosome and allele (f.ex. SSLP-repeat)!')
 cat('\n')
-cat('Please note: Also small translocation can happen between chr10/4 and within the D4Z4 arrays.')
-cat('\n')
-cat('\n')
-cat('Non-Standard-Chromosome:')
-cat('\n')
-cat('10B161Ta/b: 4qB-hit, chr10 indicators (c10_ctrl/no_chr4_hit) + 4qB_D4F104S1 + c4_D4Z4 + 4qB-pLAM --> rare Chromosome 10 haplotype 10B161.')
 cat('\n')
 cat('\n')
 cat('____________________________')
@@ -982,5 +966,6 @@ file.rename(pas, target)
 #################################################################################################################################
 ####                 FINISH :)             #####
 #################################################################################################################################
+
 
 
