@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 # metadata 
 
-LABEL org.opencontainers.image.title="DUCKS4_small"
+LABEL org.opencontainers.image.title="DUCKS4_wovar"
 LABEL org.opencontainers.image.description="FSHD analysis workflow for Nanopore reads"
 LABEL org.opencontainers.image.source="https://github.com/tamara-nano/ducks4"
 LABEL org.opencontainers.image.version="2.1.0"
@@ -117,8 +117,9 @@ COPY . /ducks4/
 RUN chmod +x /ducks4/DUCKS4_wovar.py
 RUN chmod +x /ducks4/DUCKS4_ID2bam2meth.py
 
-ENTRYPOINT ["/usr/bin/python3", "/ducks4/DUCKS4_small.py"]
+ENTRYPOINT ["/usr/bin/python3", "/ducks4/DUCKS4_wovar.py"]
 
 CMD ["/bin/bash"]
+
 
 
