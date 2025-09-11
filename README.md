@@ -34,7 +34,7 @@ download repository and unzip it \
 
 For running the tool:
 
-`docker run --rm -v $(pwd):/data fshd_ducks4_wovar --input /data/mysample.bam --methyl`
+`docker run --rm -v $(pwd):/data fshd_ducks4_wovar --input /data/mysample.bam --ref /data/t2t_chm13v2.0.fasta --methyl`
 
 For showing more infos:
 
@@ -72,7 +72,7 @@ For showing more infos:
 | --bam | required, provide .bam file from which the reads should be filtered from (e.g. from DUCKS4-output). 
 | --ref | required, provide T2T-chm13 reference as .fasta. |
 | --methyl | optional, methylation calling with modkit |
-| --region | optional, but required for --methyl: provide genomic region for methylation calling (e.g. chr1:1-100).   |
+| --region | required for --methyl: provide genomic region for methylation calling (e.g. chr1:1-100).   |
 | --threads | optional, set threads. |
 
 The output is saved in the folder where the alignment.bam is located.
@@ -120,6 +120,7 @@ Publication
 If using the workflow for a publication please cite:
 
 <Löwenstern T., Madritsch M., Horner D., Brait N., Güleray Lafci N., Schachner A., Gerykova Bujalkova M., Kałużewski T., Szyld P., Hengstschläger M., Dremsek P., Laccone F. DUCKS4: A comprehensive workflow for Nanopore sequencing analysis of Facioscapulohumeral Muscular Dystrophy (FSHD). Manuscript in preparation.>
+
 
 
 
