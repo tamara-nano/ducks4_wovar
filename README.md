@@ -67,7 +67,7 @@ DUCKS4 gives following output:
 
 
 
-## Anaylsis of individual read-subsets
+# Anaylsis of individual read-subsets
 
 The DUCKS4-results make it easy to directly select reads for individal subset for further alignment, optional methylation-calling and analysis. 
 If further subsets of reads should be filtered and analyzed. a read-id.txt needs to be provided along the alignment .bam-file.
@@ -80,7 +80,7 @@ Optionally provide a subset reads to align against (either read-ids via TXT and/
 For the custom reference the blast-results of this reads are annotated within a annotation.bed file and if --methyl is chosen the average methylation will be calculated for each entry within the annotation.bed file. 
 The results can then further be inspected in a genome viewer like the IGV-browser.
 
-# Mode A: for creating a custom reference
+## Mode A: for creating a custom reference
 `docker run -it --rm -v "$(pwd)":/data ghcr.io/tamara-nano/ducks4_wovar id2bam2meth \
   --id_ref xxxx-xxxx-xxx-xxxx \
   --bam_ref /data/sample.bam \
@@ -95,7 +95,7 @@ Please be aware that the id_ref needs to be present in the bam_ref and blast_ref
 Methylation is called over all regions from the annotation.bed if no other regions are given (f.ex. --regions_bed). \
 Therefore a methlyation-gradient over all D4Z4-RUs can be called and will be provided as .bedgraph output and for convenience as .bed file with values as labels.
 
-# Mode B: providing an existing reference
+## Mode B: providing an existing reference
 `docker run -it --rm -v "$(pwd)":/data ghcr.io/tamara-nano/ducks4_wovar id2bam2meth \
   --ref /data/ref.fasta \
   --bam /data/sample.bam \
@@ -107,7 +107,7 @@ Therefore a methlyation-gradient over all D4Z4-RUs can be called and will be pro
 **Note**: \
 Methylation is called over the regions provided either as --region (one region) or --region_bed (several regions possible).
 
-# Creating the read-ID.txt: 
+## Creating the read-ID.txt: 
 Simply copy the reads-IDs you want to subset and filter from the DUCKS4-output tables into a txt-file:
 
 Format read-id.txt:\
@@ -117,7 +117,7 @@ read-id3\
 read-id5\
 ...
 
-# For showing more infos:
+## For showing more infos:
 
 `docker run -it --rm -v "$(pwd)":/data ghcr.io/tamara-nano/ducks4_wovar id2bam2meth --help`
 
@@ -141,7 +141,7 @@ read-id5\
 | --threads | optional, Set your amount of threads. Default is 45.
 | --out_path | optional, Give output_path, default: path from --bam_ref.
 
-# Output:
+## Output:
 
 - Mode A: reference.fasta, reference.fasta.fai, annotation.bed (from blast-output) generated from read_id
 - aligned reads.bam/subset-reads.bam to reference
