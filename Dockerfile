@@ -6,7 +6,7 @@ FROM ubuntu:22.04
 LABEL org.opencontainers.image.title="DUCKS4_wovar"
 LABEL org.opencontainers.image.description="FSHD analysis workflow for Nanopore reads"
 LABEL org.opencontainers.image.source="https://github.com/tamara-nano/ducks4"
-LABEL org.opencontainers.image.version="2.1.0"
+LABEL org.opencontainers.image.version="2.3.0"
 
 
 # SYSTEM UPDATE & BASICS
@@ -17,11 +17,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/usr/local/bin:/usr/bin:/bin
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates openssl \
     wget git curl bzip2 unzip nano gcc g++ make cmake \
     python3 python3-pip python3-dev \
     r-base \
     zlib1g-dev libbz2-dev liblzma-dev \
-    libncurses5-dev libncursesw5 \
+    libncurses5-dev libncursesw5-dev \
     libhts-dev libssl-dev libxml2-dev \
     libcurl4-gnutls-dev \
  && apt-get clean \
@@ -32,9 +33,9 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
 # PYTHON PACKAGES
 
-RUN /usr/bin/python3 -m pip install pysam
-RUN /usr/bin/python3 -m pip install pandas
-RUN /usr/bin/python3 -m pip install biopython
+RUN /usr/bin/python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
+
+RUN /usr/bin/python3 -m pip install pysam pandas biopython
 
 
 # R PACKAGES
@@ -53,17 +54,17 @@ RUN git clone https://github.com/lh3/minimap2 /tmp/minimap2 && \
     cp /tmp/minimap2/minimap2 /usr/local/bin/ && \
     rm -rf /tmp/minimap2
 
+# htslib  
+RUN wget -q https://github.com/samtools/htslib/releases/download/1.20/htslib-1.20.tar.bz2 && \
+    tar -xjf htslib-1.20.tar.bz2 && \
+    cd htslib-1.20 && ./configure --prefix=/usr/local && make -j && make install && \
+    cd / && rm -rf htslib-1.20 htslib-1.20.tar.bz2
+    
 # samtools
 RUN wget -q https://github.com/samtools/samtools/releases/download/1.20/samtools-1.20.tar.bz2 && \
     tar -xjf samtools-1.20.tar.bz2 && \
     cd samtools-1.20 && ./configure --prefix=/usr/local && make -j && make install && \
     cd / && rm -rf samtools-1.20 samtools-1.20.tar.bz2
-
-# htslib 
-RUN wget -q https://github.com/samtools/htslib/releases/download/1.22.1/htslib-1.22.1.tar.bz2 && \
-    tar -xjf htslib-1.22.1.tar.bz2 && \
-    cd htslib-1.22.1 && ./configure --prefix=/usr/local && make -j && make install && \
-    cd / && rm -rf htslib-1.22.1 htslib-1.22.1.tar.bz2
 
 # seqtk
 RUN git clone https://github.com/lh3/seqtk /tmp/seqtk && \
@@ -91,6 +92,10 @@ RUN set -eux; \
 ENV PATH="/usr/local/bin:$PATH"
 
 # blast
+
+WORKDIR /ducks4
+COPY . /ducks4/
+
 ARG BLAST_VERSION=2.14.0
 ARG BLAST_TAR=ncbi-blast-${BLAST_VERSION}+-x64-linux.tar.gz
 ARG BLAST_URL=https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${BLAST_VERSION}/${BLAST_TAR}
@@ -110,16 +115,15 @@ ENV PATH="/ducks4/ressources/tools/ncbi-blast-2.14.0+/bin:${PATH}"
 
 # ENTRY
 
+RUN sed -i 's/\r$//' /ducks4/ducks4
 
-WORKDIR /ducks4
-COPY . /ducks4/
+RUN chmod +x /ducks4/ducks4 \
+ && chmod +x /ducks4/DUCKS4.py \
+ && chmod +x /ducks4/DUCKS4_ID2bam2meth.py \
+ && ln -s /ducks4/ducks4 /usr/local/bin/ducks4
 
-RUN chmod +x /ducks4/DUCKS4_wovar.py
-RUN chmod +x /ducks4/DUCKS4_ID2bam2meth.py
+ENTRYPOINT ["/usr/local/bin/ducks4"]
 
-ENTRYPOINT ["/usr/bin/python3", "/ducks4/DUCKS4_wovar.py"]
-
-CMD ["/bin/bash"]
-
+CMD ["help"]
 
 
