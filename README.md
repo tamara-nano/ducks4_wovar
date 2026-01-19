@@ -84,7 +84,7 @@ The results can then further be inspected in a genome viewer like the IGV-browse
 `docker run -it --rm -v "$(pwd)":/data ghcr.io/tamara-nano/ducks4_wovar id2bam2meth \
   --id_ref xxxx-xxxx-xxx-xxxx \
   --bam_ref /data/sample.bam \
-  --blast_ref /data/DUCKS4_output/blast-results/read_ids.txt or .../read_ids.tsv \
+  --blast_ref /data/DUCKS4_output/blast-results/...fshd-blast.txt or .../...reads_blast.csv \ \
   --bam /data/sample.bam \
   --txt /data/read-ids.txt \
   --methyl 
@@ -168,6 +168,7 @@ This repository contains the sequencing data from the human reference genomes HG
 If using the workflow for a publication please cite:
 
 <Löwenstern T., Madritsch M., Horner D., Brait N., Güleray Lafci N., Schachner A., Gerykova Bujalkova M., Kałużewski T., Szyld P., Hengstschläger M., Dremsek P., Laccone F. DUCKS4: A comprehensive workflow for Nanopore sequencing analysis of Facioscapulohumeral Muscular Dystrophy (FSHD). Manuscript in preparation.>
+
 
 
 
