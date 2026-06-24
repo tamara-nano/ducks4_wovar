@@ -201,6 +201,11 @@ read-id5
 - Methylation: alignedreads.bedgraph, alignedreads.bed, alignedreads.methylbed, modkit-stats.tsv for the annotated regions if no region/regions_bed is provided.
 - D4Z4_BX_check/: BinI/XapI restriction site classification per RU (see BX check section above)
 
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/9a003d19-d6fb-4ee0-a559-c0fa274b56d5">
+    <img src="https://github.com/user-attachments/assets/9a003d19-d6fb-4ee0-a559-c0fa274b56d5" width="700">
+  </a>
+
 ### Curated methylation output
 
 Methylation values are reported for:
@@ -256,6 +261,9 @@ The BX check output is written to `{out_prefix}/D4Z4_BX_check/` and contains:
 
 IGV colors: blue = Chr10_D4Z4 (B+/X-), red = Chr4_D4Z4 (B-/X+), purple = Hybrid_D4Z4 (B-/X-), grey = ambiguous/unclassified.
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e658a161-7062-456a-a7cd-fc47139a3ba5" width="700">
+</p>
 
 ## Further analysis
 
