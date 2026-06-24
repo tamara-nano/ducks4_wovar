@@ -246,13 +246,13 @@ The BX check output is written to `{out_prefix}/D4Z4_BX_check/` and contains:
 
 | File | Description |
 |:-----|:------------|
-| `{out_prefix}_BX_per_RU.csv` | Per-read per-RU classification table |
-| `{out_prefix}_BX_summary.csv` | Per-read summary of RU type counts |
-| `{out_prefix}_BX_consensus.csv` | Per-RU consensus type, confidence, and read counts |
-| `{out_prefix}_array_structure.csv` | Compact array structure string (e.g. `c10-c4-c4-c4-c4-c4-c4-c4`) |
-| `{out_prefix}_BX_sites.bed` | RU-level BED colored by D4Z4 type for IGV (itemRgb) |
-| `{out_prefix}_BX_sites.bedgraph` | Per-RU consensus confidence as bedGraph for IGV |
-| `{out_prefix}_BX_restriction_sites.bed` | Exact BinI/XapI site positions within each RU for IGV navigation |
+| `BX_per_RU.csv` | Per-read per-RU classification table |
+| `BX_summary.csv` | Per-read summary of RU type counts |
+| `BX_consensus.csv` | Per-RU consensus type, confidence, and read counts |
+| `array_structure.csv` | Compact array structure string (e.g. `c10-c4-c4-c4-c4-c4-c4-c4`) |
+| `BX_sites.bed` | RU-level BED colored by D4Z4 type for IGV (itemRgb) |
+| `BX_sites.bedgraph` | Per-RU consensus confidence as bedGraph for IGV |
+| `BX_restriction_sites.bed` | Exact BinI/XapI site positions within each RU for IGV navigation |
 
 IGV colors: blue = Chr10_D4Z4 (B+/X-), red = Chr4_D4Z4 (B-/X+), purple = Hybrid_D4Z4 (B-/X-), grey = ambiguous/unclassified.
 
