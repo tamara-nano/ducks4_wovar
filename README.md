@@ -236,7 +236,7 @@ Three D4Z4 unit types are distinguished:
 | Chr10_D4Z4 | B+ | X- | BinI site intact, XapI site absent |
 | Hybrid_D4Z4 | B- | X- | neither site intact — hybrid/mix unit |
 
-Sites are detected with up to 1 mismatch tolerance (fuzzy matching) to account for SNVs that disrupt restriction sites without abolishing the unit's identity. Exact matches and fuzzy matches (mm=1) are reported separately in the BED output.
+Sites are detected with up to 1 mismatch tolerance (fuzzy matching) to account for SNVs that disrupt restriction sites. Exact matches and fuzzy matches (mm=1) are reported separately in the BED output.
 
 Per-RU consensus is built by majority vote across all reads covering each RU position. Confidence = fraction of reads agreeing with the majority call. RUs with fewer than 3 covering reads are flagged as `low_coverage`; RUs where fewer than 60% of reads agree are flagged as `ambiguous_consensus`.
 
