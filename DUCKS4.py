@@ -2,7 +2,7 @@ import os, subprocess, time, shutil, sys
 from argparse import ArgumentParser
 from pprint import pprint
 
-VERSION = "2.1.0"
+VERSION = "1.1.0"
 
 # Implement ArgParser
 parser = ArgumentParser(
@@ -44,7 +44,7 @@ if not os.path.isfile(args.finput):
 
 if args.threads:
     try:
-        args.threads = int(args.threads)
+        args.threads = str(int(args.threads))
     except ValueError:
         print("ERROR: --threads must be an integer.")
         sys.exit(1)
@@ -76,7 +76,7 @@ def main():
     print("####   DUCKS4   ####")
     print("       ")
     print("DUCKS4 - a comprehensive FSHD-analysis pipeline for long-reads.")
-    print("DUCKS4 v2.0")
+    print(f"DUCKS4 v{VERSION}")
     print("       ")
     print("See --help for more infos.")
     print("The whole workflow is based on T2T-chm13v2.0.")
@@ -209,12 +209,11 @@ def main():
       path = os.path.dirname(sam_input)
       bam_file = ''.join([sam_file.split('.')[0], ".bam"])
       if args.threads:
-        thread = ''.join(["-@", args.threads])
-        subprocess.call(["samtools", "view", thread, "-S", "-b", os.path.join(path, sam_file), "-o", os.path.join(path, bam_file)])
-        subprocess.call(["samtools", "sort", "-m", "15G", "-o", os.path.join(path, bam_file), os.path.join(path, sam_file)])
+        subprocess.call(["samtools", "view", "-@", str(args.threads), "-S", "-b", os.path.join(path, sam_file), "-o", os.path.join(path, bam_file)])
+        subprocess.call(["samtools", "sort", "-@", str(args.threads), "-m", "15G", "-o", os.path.join(path, bam_file), os.path.join(path, sam_file)])
       else:
-        subprocess.call(["samtools", "view", "-@45", "-S", "-b", os.path.join(path, sam_file), "-o", os.path.join(path, bam_file)])
-        subprocess.call(["samtools", "sort", "-@16", "-m", "15G", "-o", os.path.join(path, bam_file), os.path.join(path, sam_file)])
+        subprocess.call(["samtools", "view", "-@", "45", "-S", "-b", os.path.join(path, sam_file), "-o", os.path.join(path, bam_file)])
+        subprocess.call(["samtools", "sort", "-@", "16", "-m", "15G", "-o", os.path.join(path, bam_file), os.path.join(path, sam_file)])
       subprocess.call(["samtools", "index", os.path.join(path, bam_file)])
       subprocess.call(["rm", os.path.join(path, sam_file)])
       return bam_file
@@ -263,7 +262,7 @@ def main():
     blast_file = ''.join([fastq_file.split('.')[0], "_fshd-blast.txt"])
     fasta_file = checkfile_fasta(os.path.join(path_sample, fastq_file))
     FSHD_path = os.path.join(path_sample, ''.join(["FSHD-analysis_", file_name]), '')
-    os.mkdir(FSHD_path)
+    os.makedirs(FSHD_path, exist_ok=True)
     print("       ")
     print("Start Blast-analysis!")
     print("       ")
@@ -296,7 +295,7 @@ def main():
     
     # Filter out Haplotypes and map
     ID_path = os.path.join(FSHD_path, "read-IDs")
-    os.mkdir(ID_path)
+    os.makedirs(ID_path, exist_ok=True)
     q4A_all = check_ID(os.path.join(FSHD_path, "4qA_all-reads-ID.txt"))
     q4A_complete = check_ID(os.path.join(FSHD_path, "4qA_complete-reads-ID.txt"))
     chimeric = check_ID(os.path.join(FSHD_path, "chimeric-reads-ID.txt"))
@@ -328,7 +327,7 @@ def main():
       #ref_path = os.path.join(script_path, "ressources","reference")
       #ref_path = str(ref_path)
       meth_path = os.path.join(FSHD_path, "methylation-analysis")
-      os.mkdir(meth_path)
+      os.makedirs(meth_path, exist_ok=True)
       if q4A_bam_all:
         modkit_bed_all = "4qA-all-reads_modkit-methyl.bed"
         q4A_bam_all = str(q4A_bam_all)
@@ -375,7 +374,7 @@ def main():
 
 
     
-    subprocess.call(["chown", "-R", "777", FSHD_path])
+    subprocess.call(["chmod", "-R", "777", FSHD_path])
 
     print("       ")
     print("####   DUCKS4   ####")
