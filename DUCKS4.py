@@ -2,7 +2,7 @@ import os, subprocess, time, shutil, sys
 from argparse import ArgumentParser
 from pprint import pprint
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 # Implement ArgParser
 parser = ArgumentParser(

@@ -9,6 +9,7 @@ from pathlib import Path
 import pandas as pd
 import pysam
 
+# v1.1.1
 
 def reverse_complement(seq: str) -> str:
     comp = str.maketrans("ACGTNacgtn", "TGCANtgcan")
@@ -305,54 +306,268 @@ def infer_orientation_from_blast(blast_path, target_read_id):
 
     return best["orientation"]
 
-def parse_blast_to_bed(blast_path, target_read_id, bed_path):
+def parse_blast_to_bed(
+    blast_path,
+    target_read_id,
+    resolved_bed_path,
+):
     """
-    Parse final-orientation BLAST output into raw BED.
-    """
-    hits = {}
+    Parse the final BLAST output into a PID-resolved annotation BED.
+    For overlapping hits from the same feature family,
+    retain the hit with the highest percentage identity (pid).
 
-    with open(blast_path) as fh:
-        for line in fh:
+    """
+    hits = []
+    
+    def feature_family(region):
+        """
+        Features that generate competing haplotype/chromosome-specific
+        BLAST hits and must be resolved by highest PID.
+        """
+        name = str(region)
+    
+        if "D4Z4" in name:
+            return "D4Z4"
+    
+        if "D4F104S1" in name:
+            return "D4F104S1"
+    
+        if (
+            ("pLAM" in name or "PLAM" in name)
+            and "lowpid" not in name.lower()
+        ):
+            return "pLAM"
+    
+        return None
+
+    with open(blast_path, encoding="utf-8") as fh:
+        for line_number, line in enumerate(fh, start=1):
             line = line.strip()
+
             if not line or line.startswith("#"):
                 continue
 
             cols = line.split()
-            if len(cols) < 9:
+
+            # Current BLAST outfmt contains 13 columns.
+            if len(cols) < 13:
+                print(
+                    f"WARNING: skipping malformed BLAST line {line_number}: "
+                    f"expected 13 columns, found {len(cols)}",
+                    file=sys.stderr,
+                )
                 continue
 
             qseqid = cols[0].strip()
+
             if qseqid != target_read_id:
                 continue
 
             region = cols[1].strip().rstrip(".")
-            
-            # label pseudo/low-identity pLAM separately
-            if ("pLAM" in region or "PLAM" in region) and pid < 90:
-                region = region.replace("_pLAM", "_pLAM_lowpid")
-                region = region.replace("_PLAM", "_pLAM_lowpid")
 
             try:
                 pid = float(cols[2].replace(",", "."))
                 qstart = int(cols[7])
                 qend = int(cols[8])
             except ValueError:
+                print(
+                    f"WARNING: skipping BLAST line {line_number}: "
+                    "invalid numeric value",
+                    file=sys.stderr,
+                )
                 continue
 
+            # BLAST coordinates are 1-based.
+            # BED coordinates are 0-based.
             start = min(qstart, qend) - 1
             end = max(qstart, qend)
 
-            key = (start, end)
-            best = hits.get(key)
-            if best is None or pid > best["pid"]:
-                hits[key] = {"pid": pid, "region": region}
+            if (
+                ("pLAM" in region or "PLAM" in region)
+                and pid < 90.0
+            ):
+                region = region.replace("_pLAM", "_pLAM_lowpid")
+                region = region.replace("_PLAM", "_pLAM_lowpid")
+
+            hits.append({
+                "start": start,
+                "end": end,
+                "region": region,
+                "pid": pid,
+                "feature_family": feature_family(region),
+            })
 
     if not hits:
-        raise ValueError(f"No BLAST hits found for read {target_read_id} in {blast_path}")
+        raise ValueError(
+            f"No BLAST hits found for read {target_read_id} "
+            f"in {blast_path}"
+        )
 
-    with open(bed_path, "w") as out:
-        for (start, end) in sorted(hits.keys()):
-            out.write(f"{target_read_id}\t{start}\t{end}\t{hits[(start, end)]['region']}\n")
+    # Remove only exact duplicate records:
+    exact_best = {}
+
+    for hit in hits:
+        key = (
+            hit["start"],
+            hit["end"],
+            hit["region"],
+        )
+
+        previous = exact_best.get(key)
+
+        if previous is None or hit["pid"] > previous["pid"]:
+            exact_best[key] = hit
+
+    unique_hits = sorted(
+        exact_best.values(),
+        key=lambda hit: (
+            hit["start"],
+            hit["end"],
+            hit["region"],
+        ),
+    )
+
+    def overlap_fraction(hit_a, hit_b):
+        overlap = max(
+            0,
+            min(hit_a["end"], hit_b["end"])
+            - max(hit_a["start"], hit_b["start"]),
+        )
+
+        if overlap <= 0:
+            return 0.0
+
+        shorter_length = min(
+            hit_a["end"] - hit_a["start"],
+            hit_b["end"] - hit_b["start"],
+        )
+
+        if shorter_length <= 0:
+            return 0.0
+
+        return overlap / shorter_length
+
+    def resolve_overlapping_hits_by_pid(feature_hits, family_name):
+        """
+        For one feature family, group overlapping hits and retain
+        the annotation with the highest PID.
+        """
+        if not feature_hits:
+            return []
+    
+        feature_hits = sorted(
+            feature_hits,
+            key=lambda hit: (
+                hit["start"],
+                hit["end"],
+                -hit["pid"],
+                hit["region"],
+            ),
+        )
+    
+        selected = []
+        unassigned = set(range(len(feature_hits)))
+    
+        while unassigned:
+            seed_idx = min(
+                unassigned,
+                key=lambda idx: (
+                    feature_hits[idx]["start"],
+                    feature_hits[idx]["end"],
+                ),
+            )
+    
+            group = {seed_idx}
+            changed = True
+    
+            while changed:
+                changed = False
+    
+                for candidate_idx in list(unassigned - group):
+                    candidate = feature_hits[candidate_idx]
+    
+                    overlaps_group = any(
+                        overlap_fraction(
+                            candidate,
+                            feature_hits[group_idx],
+                        ) >= 0.8
+                        for group_idx in group
+                    )
+    
+                    if overlaps_group:
+                        group.add(candidate_idx)
+                        changed = True
+    
+            unassigned -= group
+    
+            best_idx = max(
+                group,
+                key=lambda idx: feature_hits[idx]["pid"],
+            )
+    
+            best_hit = feature_hits[best_idx]
+            selected.append(best_hit)
+    
+            if len(group) > 1:
+                candidates = sorted(
+                    (
+                        feature_hits[idx]["region"],
+                        feature_hits[idx]["pid"],
+                        feature_hits[idx]["start"],
+                        feature_hits[idx]["end"],
+                    )
+                    for idx in group
+                )
+    
+                print(
+                    f"Resolved overlapping {family_name} hits by PID: "
+                    f"selected {best_hit['region']} "
+                    f"(PID={best_hit['pid']:.3f}, "
+                    f"{best_hit['start']}-{best_hit['end']}); "
+                    f"candidates={candidates}"
+                )
+    
+        return selected
+    
+    
+    resolved_hits = []
+    
+    for family_name in ["D4Z4", "D4F104S1", "pLAM"]:
+        family_hits = [
+            hit for hit in unique_hits
+            if hit["feature_family"] == family_name
+        ]
+    
+        resolved_hits.extend(
+            resolve_overlapping_hits_by_pid(
+                family_hits,
+                family_name,
+            )
+        )
+    
+    # Features without competing haplotype-specific references are kept.
+    resolved_hits.extend(
+        hit for hit in unique_hits
+        if hit["feature_family"] is None
+    )
+    
+    resolved_hits = sorted(
+        resolved_hits,
+        key=lambda hit: (
+            hit["start"],
+            hit["end"],
+            hit["region"],
+        ),
+    )
+    
+    with open(resolved_bed_path, "w", encoding="utf-8") as out:
+        for hit in resolved_hits:
+            out.write(
+                f"{target_read_id}\t"
+                f"{hit['start']}\t"
+                f"{hit['end']}\t"
+                f"{hit['region']}\n"
+            )    
 
 
 def run_annotation_curation(curate_script, raw_bed, curated_tsv, curated_bed):
@@ -567,7 +782,7 @@ def main():
 
     print("       ")
     print("####   DUCKS4 - ID2bam2meth   ####")
-    print("Version 1.1.0")
+    print("Version 1.1.1")
     print("       ")
 
     modeA = bool(args.id_ref and args.bam_ref)
@@ -713,7 +928,11 @@ def main():
             threads=args.threads,
         )
 
-        parse_blast_to_bed(final_blast_path, args.id_ref, bed_path)
+        parse_blast_to_bed(
+            blast_path=final_blast_path,
+            target_read_id=args.id_ref,
+            resolved_bed_path=bed_path,
+        )
 
         if not Path(curate_script).exists():
             print(f"ERROR: curate script not found: {curate_script}", file=sys.stderr)
@@ -734,7 +953,6 @@ def main():
             raw_fasta_path,
             Path(str(raw_fasta_path) + ".fai"),
             raw_blast_path,
-            bed_path,
         ]:
             try:
                 if Path(fp).exists():
@@ -746,6 +964,7 @@ def main():
         print(f"FINAL FASTA       : {final_fasta_path}")
         print(f"FINAL FAIDX       : {final_fasta_path}.fai")
         print(f"FINAL BLAST       : {final_blast_path}")
+        print(f"BED               : {bed_path}")
         print(f"CURATED TSV       : {curated_tsv_path}")
         print(f"CURATED BED       : {curated_bed_path}")
         print(f"FINAL ORIENT      : {'flipped_to_forward' if flipped else 'kept_as_is'}")
@@ -805,7 +1024,11 @@ def main():
                 threads=args.threads,
             )
     
-            parse_blast_to_bed(final_blast_path, ref_read_id, bed_path)
+            parse_blast_to_bed(
+                blast_path=final_blast_path,
+                target_read_id=ref_read_id,
+                resolved_bed_path=bed_path,
+            )
     
             run_annotation_curation(
                 curate_script=curate_script,
@@ -815,7 +1038,7 @@ def main():
             )
     
             final_regions_bed = curated_bed_path
-    
+            print(f"BED               : {bed_path}")
             print(f"CURATED TSV       : {curated_tsv_path}")
             print(f"CURATED BED       : {curated_bed_path}")
     
