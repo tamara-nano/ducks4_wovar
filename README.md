@@ -92,7 +92,7 @@ DUCKS4 gives following output:
 
 
 
-## Anaylsis of individual read-subsets
+# Anaylsis of individual read-subsets
 
 The DUCKS4-results make it easy to directly select reads for individal subset for further alignment, optional methylation-calling and analysis.
 If further subsets of reads should be filtered and analyzed. a read-id.txt needs to be provided along the alignment .bam-file.
@@ -105,7 +105,7 @@ Optionally provide a subset reads to align against (either read-ids via TXT and/
 For the custom reference the blast-results of this reads are annotated within a annotation.bed file and if --methyl is chosen the average methylation will be calculated for each entry within the annotation.bed file.
 The results can then further be inspected in a genome viewer like the IGV-browser.
 
-# Mode A: for creating a custom reference
+## Mode A: for creating a custom reference
 `docker run -it --rm -v "$(pwd)":/data ghcr.io/tamara-nano/ducks4_wovar id2bam2meth \
   --id_ref xxxx-xxxx-xxx-xxxx \
   --bam_ref /data/sample.bam \
@@ -120,7 +120,7 @@ Please be aware that the id_ref needs to be present in the bam_ref and blast_ref
 Methylation is called over all regions from the annotation.bed if no other regions are given (f.ex. --regions_bed). \
 Therefore a methlyation-gradient over all D4Z4-RUs can be called and will be provided as .bedgraph output and for convenience as .bed file with values as labels.
 
-# Mode B: providing an existing reference
+## Mode B: providing an existing reference
 `docker run -it --rm -v "$(pwd)":/data ghcr.io/tamara-nano/ducks4_wovar id2bam2meth \
   --ref /data/ref.fasta \
   --bam /data/sample.bam \
@@ -132,7 +132,7 @@ Therefore a methlyation-gradient over all D4Z4-RUs can be called and will be pro
 **Note**: \
 Methylation is called over the regions provided either as --region (one region) or --region_bed (several regions possible).
 
-# Creating the read-ID.txt:
+### Creating the read-ID.txt:
 Simply copy the reads-IDs you want to subset and filter from the DUCKS4-output tables into a txt-file:
 
 Format read-id.txt:\
@@ -142,7 +142,7 @@ read-id3\
 read-id5\
 ...
 
-# For showing more infos:
+### For showing more infos:
 
 `docker run -it --rm -v "$(pwd)":/data ghcr.io/tamara-nano/ducks4_wovar id2bam2meth --help`
 
@@ -166,11 +166,71 @@ read-id5\
 | --threads | optional, Set your amount of threads. Default is 45.
 | --out_path | optional, Give output_path, default: path from --bam_ref.
 
-# Output:
+### Output:
 
 - Mode A: reference.fasta, reference.fasta.fai, annotation.bed (from blast-output) generated from read_id
 - aligned reads.bam/subset-reads.bam to reference
 - Methylation: alignedreads.bedgraph, alignedreads.bed, alignedreads.methylbed, modkit-stats.tsv
+
+<img width="2715" height="2695" alt="SF2_methylation2" src="https://github.com/user-attachments/assets/7fdc4ca1-39ca-4866-b2a9-b03a7ac9865a" />
+Fig.1: Example of 4 alleles after final curation run by id2bam2meth, alignment against chosen read as custom reference and methylation calling. 
+
+### Curated methylation output
+
+Methylation values are reported for:
+
+- CLUHP4
+- D4F104S1
+- individual D4Z4 repeat units
+- pLAM
+- DUX4_end
+
+Additionally, the following aggregate regions are reported:
+
+- distal_unit: terminal RU plus pLAM
+
+distal_unit is included because distal methylation is particularly relevant for FSHD diagnostics.
+
+---
+
+### BinI/XapI per-RU restriction site classification (BX check) [EXPERIMENTAL]
+
+The BX check is automatically run as part of the methylation workflow in ID2bam2meth and classifies each D4Z4 repeat unit (RU) of an assigned allele based on the presence or absence of two restriction enzyme recognition sequences detected directly from read alignments:
+
+| Site | Enzyme | Sequence | D4Z4 type |
+|:-----|:-------|:---------|:----------|
+| B+ | BinI/AvrII | CCTAGG | intact in Chr10_D4Z4 |
+| X+ | XapI/ApoI | AAATTCC | intact in Chr4_D4Z4 |
+
+Three D4Z4 unit types are distinguished:
+
+| Type | B site | X site | Meaning |
+|:-----|:-------|:-------|:--------|
+| Chr4_D4Z4 | B- | X+ | XapI site intact, BinI site absent |
+| Chr10_D4Z4 | B+ | X- | BinI site intact, XapI site absent |
+| Hybrid_D4Z4 | B- | X- | neither site intact — hybrid unit |
+
+The sites are detected with up to 1 mismatch () tolerance (fuzzy matching) to account for SNVs that disrupt restriction sites. Exact matches and fuzzy matches (mm=1) are reported separately in the BED output.
+
+Per-RU consensus is built by majority vote across all reads covering each RU position. Confidence = fraction of reads agreeing with the majority call. RUs with fewer than 3 covering reads are flagged as `low_coverage`; RUs where fewer than 60% of reads agree are flagged as `ambiguous_consensus`.
+
+### BX check output
+
+The BX check output is written to `{out_prefix}/D4Z4_BX_check/` and contains:
+
+| File | Description |
+|:-----|:------------|
+| `BX_per_RU.csv` | Per-read per-RU classification table |
+| `BX_summary.csv` | Per-read summary of RU type counts |
+| `BX_consensus.csv` | Per-RU consensus type, confidence, and read counts |
+| `array_structure.csv` | Compact array structure string (e.g. `c10-c4-c4-c4-c4-c4-c4-c4`) |
+| `BX_sites.bed` | RU-level BED colored by D4Z4 type for IGV (itemRgb) |
+| `BX_sites.bedgraph` | Per-RU consensus confidence as bedGraph for IGV |
+| `BX_restriction_sites.bed` | BinI/XapI site positions (includes fuzzy matching) within each RU for IGV navigation |
+
+<img width="3323" height="2273" alt="BX-analysis" src="https://github.com/user-attachments/assets/53f49e0f-c2cb-46b2-8127-35542992a8d9" />
+
+IGV colors: blue = Chr10_D4Z4 (B+/X-), red = Chr4_D4Z4 (B-/X+), purple = Hybrid_D4Z4 (B-/X-), grey = ambiguous/unclassified, green distal D4Z4-S.
 
 
 
